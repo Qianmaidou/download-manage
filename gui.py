@@ -78,6 +78,7 @@ class OrganizeGUI:
         self.root.minsize(800, 540)
         self.root.configure(bg=C["page_bg"])
         self._center_window()
+        self.root.report_callback_exception = self._handle_exception
 
         self.root.columnconfigure(1, weight=1)
         self.root.rowconfigure(1, weight=1)
@@ -620,6 +621,13 @@ class OrganizeGUI:
         sw, sh = self.root.winfo_screenwidth(), self.root.winfo_screenheight()
         self.root.geometry(f"+{(sw - w) // 2}+{(sh - h) // 2}")
 
+    def _handle_exception(self, exc_type, exc_val, exc_tb):
+        """全局异常处理 — 弹出错误框避免静默崩溃"""
+        import traceback
+        msg = "".join(traceback.format_exception(exc_type, exc_val, exc_tb))
+        self._log(f"未捕获异常:\n{msg}", "error")
+        messagebox.showerror("程序错误", f"{exc_val}\n\n详情请查看操作日志")
+
     def _on_close(self):
         if self._running:
             if not messagebox.askyesno("确认退出", "整理正在进行中，确定退出？"):
@@ -700,6 +708,9 @@ class OrganizeGUI:
     # ══════════════════════════════════════════════════════════
     def _on_preview(self):
         if not self.downloads or not self.downloads.exists():
+            self._log("错误: 下载文件夹不存在，请检查路径设置", "error")
+            self._status_text.set("路径无效")
+            messagebox.showwarning("路径错误", f"下载文件夹不存在:\n{self.downloads}\n\n请在顶部点击 [更改...] 选择正确的文件夹。")
             return
 
         self._switch_page(0)
@@ -710,6 +721,9 @@ class OrganizeGUI:
             self.preview_items = self._scan_and_classify()
         except Exception as e:
             self._log(f"扫描失败: {e}", "error")
+            self._status_text.set("扫描出错")
+            messagebox.showerror("扫描错误", str(e))
+            return
             return
 
         # 填充 Treeview
@@ -773,10 +787,11 @@ class OrganizeGUI:
         if not self.preview_items:
             self._on_preview()
         if not self.preview_items:
+            messagebox.showinfo("提示", "请先点击 [预览] 扫描文件。")
             return
         total = sum(1 for i in self.preview_items if i.cat_key != "skipped")
         if total == 0:
-            messagebox.showinfo("提示", "没有需要整理的文件。")
+            messagebox.showinfo("提示", "没有需要整理的文件，下载文件夹可能已是最新状态。")
             return
         if not messagebox.askyesno("确认", f"将对 {total} 项执行整理，是否继续？"):
             return
