@@ -93,6 +93,7 @@ class OrganizeGUI:
         self._apply_theme()
         self._build_sidebar()
         self._build_pages()
+        self._switch_page(0)  # 默认显示待整理页
         self._build_statusbar()
         self._bind_keys()
         self._refresh_last_time()
@@ -233,8 +234,6 @@ class OrganizeGUI:
                 w.bind("<Enter>", lambda e, b=btn: self._nav_hover(b, True))
                 w.bind("<Leave>", lambda e, b=btn: self._nav_hover(b, False))
             self._nav_btns.append(btn)
-
-        self._switch_page(0)
 
     def _nav_hover(self, btn: tk.Frame, enter: bool):
         if btn._index == getattr(self, "_active_page", -1):
