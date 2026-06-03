@@ -5,6 +5,7 @@
 
 import json
 import os
+import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -66,6 +67,10 @@ def _validate(config: Dict[str, Any]) -> None:
 def get_downloads_path(config: Dict[str, Any]) -> Path:
     """解析下载文件夹路径。
 
+    自动检测当前系统的下载文件夹：
+    - Windows: 通过 USERPROFILE 环境变量
+    - macOS / Linux: 通过 HOME 环境变量
+
     Args:
         config: 配置字典。
 
@@ -74,9 +79,28 @@ def get_downloads_path(config: Dict[str, Any]) -> Path:
     """
     raw = config.get("downloads_path", "auto")
     if raw == "auto":
-        # Windows: %USERPROFILE%/Downloads
-        return Path(os.environ.get("USERPROFILE", "")) / "Downloads"
+        return _detect_downloads()
     return Path(raw).expanduser().resolve()
+
+
+def _detect_downloads() -> Path:
+    """自动检测系统下载文件夹路径。"""
+    if sys.platform == "win32":
+        # Windows: 尝试多个可能的环境变量
+        for var in ("USERPROFILE", "HOMEPATH", "HOMEDRIVE"):
+            home = os.environ.get(var, "")
+            if home:
+                # 如果 HOMEDRIVE 没有路径分隔符，补全
+                if var == "HOMEDRIVE" and not home.endswith("\\"):
+                    home += "\\"
+                candidate = Path(home) / "Downloads"
+                if candidate.exists():
+                    return candidate
+        # 最终回退
+        return Path.home() / "Downloads"
+    else:
+        # macOS / Linux
+        return Path.home() / "Downloads"
 
 
 def build_extension_map(config: Dict[str, Any]) -> Dict[str, str]:
