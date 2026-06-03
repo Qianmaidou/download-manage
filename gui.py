@@ -516,7 +516,14 @@ class OrganizeGUI:
         elif self._active_page == 1: self._on_delete_tree("browse")
 
     def _center(self):
-        self.root.eval("tk::PlaceWindow . center")
+        self.root.update_idletasks()
+        w = self.root.winfo_width()
+        h = self.root.winfo_height()
+        sw = self.root.winfo_screenwidth()
+        sh = self.root.winfo_screenheight()
+        x = (sw - w) // 2
+        y = (sh - h) // 2
+        self.root.geometry(f"+{x}+{y}")
 
     def _handle_exception(self, exc_type, exc_val, exc_tb):
         import traceback
