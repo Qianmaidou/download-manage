@@ -216,3 +216,36 @@
 - GUI 和 CLI 是两个平行入口，共享 `lib/` 模块
 - 零新增依赖（Tkinter 是 Python 标准库）
 - CLI 代码零改动
+
+---
+
+## v1.1.1 — 选中删除功能
+
+**时间**: 2026-06-03
+
+**新增功能**:
+- Treeview 改为多选模式（`selectmode="extended"`）
+- [🗑 删除选中] 按钮 — 选中后批量删除
+- 右键菜单 — 右键文件行弹出删除/全选菜单
+- `Ctrl+A` 全选, `Delete` 键删除
+- 删除确认对话框（显示文件列表，文件夹特别警告）
+- 删除后自动刷新预览和统计
+
+---
+
+## v1.2.0 — EXE 打包支持
+
+**时间**: 2026-06-03
+
+**完成内容**:
+- 新增 `lib/utils.py` — `get_app_dir()` 统一路径解析（支持开发/PyInstaller 双模式）
+- 修复 `lib/config_loader.py` — `DEFAULT_CONFIG_PATH` 使用 `get_app_dir()`
+- 修复 `organize.py` — `sys.path` 和 `history_path` 支持 frozen 模式
+- 修复 `gui.py` — 同上
+- 新增 `build.bat` — 一键构建 EXE（PyInstaller --onefile --windowed）
+- 更新 `.gitignore` — 排除 `*.spec`
+
+**构建方法**:
+1. 双击 `build.bat`
+2. 输出: `dist/下载文件夹整理工具.exe`
+3. 将 exe 和 config.json 放在同一目录即可运行

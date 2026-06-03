@@ -25,3 +25,4 @@ desktop.ini
 
 # Project specific
 history.json
+*.spec

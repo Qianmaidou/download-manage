@@ -8,9 +8,11 @@ import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from .utils import get_app_dir
 
-# 默认配置文件路径（相对于项目根目录）
-DEFAULT_CONFIG_PATH = Path(__file__).parent.parent / "config.json"
+
+# 默认配置文件路径（相对于应用根目录）
+DEFAULT_CONFIG_PATH = get_app_dir() / "config.json"
 
 
 class ConfigError(Exception):

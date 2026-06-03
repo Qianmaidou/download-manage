@@ -17,7 +17,11 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 # 确保项目根目录在 sys.path 中
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+if getattr(sys, "frozen", False):
+    app_dir = Path(sys.executable).parent
+else:
+    app_dir = Path(__file__).resolve().parent
+sys.path.insert(0, str(app_dir))
 
 import tkinter as tk
 from tkinter import ttk, messagebox
@@ -153,9 +157,7 @@ class OrganizeGUI:
         self.category_names = {cat["name"] for cat in self.categories_config.values()}
 
         # 历史记录管理器
-        history_path = Path(__file__).resolve().parent / self.config.get(
-            "history_file", "history.json"
-        )
+        history_path = app_dir / self.config.get("history_file", "history.json")
         self.history_mgr = HistoryManager(history_path)
 
     # ------------------------------------------------------------------
