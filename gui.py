@@ -84,8 +84,6 @@ class OrganizeGUI:
         self._running = False
         self._stop_requested = False
         self._active_page = 0
-        self.last_organize_time = tk.StringVar(value="—")
-
         # ── 构建界面（严格顺序） ──
         self._build_root_grid()
         self._build_sidebar()
@@ -93,7 +91,6 @@ class OrganizeGUI:
         self._switch_page(0)
         self._build_statusbar()
         self._bind_keys()
-        self._refresh_last_time()
         self.root.protocol("WM_DELETE_WINDOW", self._on_close)
         self._center()
 
@@ -461,11 +458,6 @@ class OrganizeGUI:
         ctk.CTkLabel(bar, textvariable=self._status_text, font=ctk.CTkFont(size=16),
                      text_color=C["text_s"]).grid(row=0, column=0, sticky="w", padx=(16, 0))
 
-        ctk.CTkLabel(bar, text="上次整理:", font=ctk.CTkFont(size=16),
-                     text_color=C["text_s"]).grid(row=0, column=2, padx=(0, 4))
-        ctk.CTkLabel(bar, textvariable=self.last_organize_time, font=ctk.CTkFont(size=16),
-                     text_color=C["text_s"]).grid(row=0, column=3, padx=(0, 16))
-
         self._progress = ctk.CTkProgressBar(bar, width=100, height=10, corner_radius=5,
                                              fg_color=C["border"], progress_color=C["primary"])
 
@@ -536,10 +528,6 @@ class OrganizeGUI:
             if not messagebox.askyesno("确认退出", "整理正在进行中，确定退出？"):
                 return
         self.root.destroy()
-
-    def _refresh_last_time(self):
-        last = self.history_mgr.get_last_operation()
-        self.last_organize_time.set(last["time"] if last else "—")
 
     # ══════════════════════════════════════════════════════════
     # 删除
@@ -722,7 +710,6 @@ class OrganizeGUI:
     def _on_organize_done(self, report: Report):
         self._set_running(False)
         self._status_text.set("就绪")
-        self._refresh_last_time()
         self._log(f"整理完成: {report.total_moved} 项" + (f", 去重 {report.total_dedup}" if report.total_dedup else ""), "info")
         self._on_preview()
         self._refresh_cat_list()
@@ -774,7 +761,6 @@ class OrganizeGUI:
     def _on_undo_done(self, success, failed):
         self._set_running(False)
         self._status_text.set("就绪")
-        self._refresh_last_time()
         msg = f"撤销完成: {success} 项恢复" + (f", {failed} 失败" if failed else "")
         self._log(msg, "info")
         self._on_preview()
