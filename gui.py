@@ -205,17 +205,17 @@ class OrganizeGUI:
 
         ctk.CTkLabel(path_card, text="下载文件夹", font=ctk.CTkFont(size=15, weight="bold"),
                      text_color=C["text"]).grid(row=0, column=0, sticky="w", padx=16, pady=12)
-        self._path_label = ctk.CTkLabel(path_card, text="", font=ctk.CTkFont(size=13),
+        self._path_label = ctk.CTkLabel(path_card, text="", font=ctk.CTkFont(size=15),
                                          text_color=C["text_s"], anchor="w")
         self._path_label.grid(row=0, column=1, sticky="ew", padx=(8, 8))
         self._update_path_label()
 
         ctk.CTkButton(path_card, text="更改...", width=70, height=30,
-                      font=ctk.CTkFont(size=13), fg_color=C["primary"],
+                      font=ctk.CTkFont(size=15), fg_color=C["primary"],
                       hover_color=C["primary_h"], corner_radius=6,
                       command=self._on_change_path).grid(row=0, column=2, padx=(0, 6), pady=12)
         ctk.CTkButton(path_card, text="重置", width=56, height=30,
-                      font=ctk.CTkFont(size=13), fg_color="transparent",
+                      font=ctk.CTkFont(size=15), fg_color="transparent",
                       text_color=C["text_s"], hover_color=C["border"],
                       border_width=1, border_color=C["border"], corner_radius=6,
                       command=self._on_reset_path).grid(row=0, column=3, padx=(0, 12), pady=12)
@@ -239,25 +239,25 @@ class OrganizeGUI:
         btn_frame.grid(row=3, column=0, sticky="e", padx=20, pady=(0, 12))
 
         self.btn_preview = ctk.CTkButton(btn_frame, text="🔍 预览", width=100, height=34,
-                                          font=ctk.CTkFont(size=14), fg_color="transparent",
+                                          font=ctk.CTkFont(size=16), fg_color="transparent",
                                           text_color=C["text"], hover_color=C["border"],
                                           border_width=1, border_color=C["border"],
                                           corner_radius=6, command=self._on_preview)
         self.btn_preview.pack(side="left", padx=(0, 8))
         self.btn_organize = ctk.CTkButton(btn_frame, text="▶ 立即整理", width=110, height=34,
-                                           font=ctk.CTkFont(size=12, weight="bold"),
+                                           font=ctk.CTkFont(size=15, weight="bold"),
                                            fg_color=C["primary"], hover_color=C["primary_h"],
                                            corner_radius=6, command=self._on_organize)
         self.btn_organize.pack(side="left", padx=(0, 8))
         self.btn_del_pen = ctk.CTkButton(btn_frame, text="🗑 删除选中", width=100, height=34,
-                                          font=ctk.CTkFont(size=14), fg_color="transparent",
+                                          font=ctk.CTkFont(size=16), fg_color="transparent",
                                           text_color=C["error"], hover_color="#FEE2E2",
                                           border_width=1, border_color=C["error"],
                                           corner_radius=6,
                                           command=lambda: self._on_delete_tree("pending"))
         self.btn_del_pen.pack(side="left", padx=(0, 8))
         self.btn_undo = ctk.CTkButton(btn_frame, text="↩ 撤销", width=80, height=34,
-                                       font=ctk.CTkFont(size=14), fg_color="transparent",
+                                       font=ctk.CTkFont(size=16), fg_color="transparent",
                                        text_color=C["text"], hover_color=C["border"],
                                        border_width=1, border_color=C["border"],
                                        corner_radius=6, command=self._on_undo)
@@ -376,7 +376,7 @@ class OrganizeGUI:
 
         # 按钮
         self.btn_del_brw = ctk.CTkButton(right_card, text="🗑 删除选中", width=100, height=32,
-                                          font=ctk.CTkFont(size=13), fg_color="transparent",
+                                          font=ctk.CTkFont(size=15), fg_color="transparent",
                                           text_color=C["error"], hover_color="#FEE2E2",
                                           border_width=1, border_color=C["error"], corner_radius=6,
                                           command=lambda: self._on_delete_tree("browse"))
@@ -439,7 +439,7 @@ class OrganizeGUI:
         card.grid_columnconfigure(0, weight=1)
         card.grid_rowconfigure(0, weight=1)
 
-        self.log_text = ctk.CTkTextbox(card, font=("Consolas", 10), fg_color=C["card"],
+        self.log_text = ctk.CTkTextbox(card, font=("Consolas", 14), fg_color=C["card"],
                                         text_color=C["text"], border_width=0, corner_radius=0,
                                         wrap="word")
         self.log_text.grid(row=0, column=0, sticky="nsew", padx=12, pady=12)
@@ -461,16 +461,16 @@ class OrganizeGUI:
         self._status_dot.grid(row=0, column=0, padx=(16, 6))
         self._draw_dot(C["success"])
 
-        self._status_label = ctk.CTkLabel(bar, text="就绪", font=ctk.CTkFont(size=13), text_color=C["text"])
+        self._status_label = ctk.CTkLabel(bar, text="就绪", font=ctk.CTkFont(size=15), text_color=C["text"])
         self._status_label.grid(row=0, column=1, sticky="w")
 
         self._status_text = tk.StringVar(value="就绪")
-        ctk.CTkLabel(bar, textvariable=self._status_text, font=ctk.CTkFont(size=13),
+        ctk.CTkLabel(bar, textvariable=self._status_text, font=ctk.CTkFont(size=15),
                      text_color=C["text_s"]).grid(row=0, column=2, padx=(20, 0))
 
-        ctk.CTkLabel(bar, text="上次整理:", font=ctk.CTkFont(size=13),
+        ctk.CTkLabel(bar, text="上次整理:", font=ctk.CTkFont(size=15),
                      text_color=C["text_s"]).grid(row=0, column=4, padx=(0, 4))
-        ctk.CTkLabel(bar, textvariable=self.last_organize_time, font=ctk.CTkFont(size=13),
+        ctk.CTkLabel(bar, textvariable=self.last_organize_time, font=ctk.CTkFont(size=15),
                      text_color=C["text_s"]).grid(row=0, column=5, padx=(0, 16))
 
         self._progress = ctk.CTkProgressBar(bar, width=100, height=10, corner_radius=5,
@@ -638,12 +638,12 @@ class OrganizeGUI:
         skipped = sum(1 for i in self.preview_items if i.cat_key == "skipped")
         for _, cat_info in self.categories_config.items():
             name, n = cat_info["name"], counts.get(cat_info["name"], 0)
-            ctk.CTkLabel(self._p_stats, text=f"[{name}: {n}]", font=ctk.CTkFont(size=13),
+            ctk.CTkLabel(self._p_stats, text=f"[{name}: {n}]", font=ctk.CTkFont(size=15),
                          text_color=C["text"]).pack(side="left", padx=(0, 12))
         if skipped:
-            ctk.CTkLabel(self._p_stats, text=f"[忽略: {skipped}]", font=ctk.CTkFont(size=13),
+            ctk.CTkLabel(self._p_stats, text=f"[忽略: {skipped}]", font=ctk.CTkFont(size=15),
                          text_color=C["text_s"]).pack(side="left", padx=(0, 12))
-        ctk.CTkLabel(self._p_stats, text=f"共 {sum(counts.values())} 项", font=ctk.CTkFont(size=13),
+        ctk.CTkLabel(self._p_stats, text=f"共 {sum(counts.values())} 项", font=ctk.CTkFont(size=15),
                      text_color=C["text_s"]).pack(side="left")
 
         self._status_text.set("就绪")
