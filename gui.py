@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """下载文件夹整理工具 — GUI v3.0 (CustomTkinter)"""
 
+import ctypes
 import json
 import os
 import shutil
@@ -8,6 +9,7 @@ import sys
 import threading
 import time
 from collections import Counter
+from ctypes import wintypes
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -22,6 +24,55 @@ sys.path.insert(0, str(APP_DIR))
 import customtkinter as ctk
 from tkinter import ttk, messagebox, filedialog
 import tkinter as tk
+
+
+# ── Windows 回收站 ─────────────────────────────────────────
+def _send_to_recycle_bin(path: Path) -> None:
+    """将文件或文件夹移入 Windows 回收站。"""
+    if not sys.platform == "win32":
+        (shutil.rmtree if path.is_dir() else path.unlink)(path)
+        return
+
+    # Shell32 SHFileOperationW
+    SHFILEOPSTRUCTW = (
+        (wintypes.HWND,     # hwnd
+         wintypes.UINT,     # wFunc
+         wintypes.LPCWSTR,  # pFrom (double null terminated)
+         wintypes.LPCWSTR,  # pTo
+         wintypes.WORD,     # fFlags
+         wintypes.BOOL,     # fAnyOperationsAborted
+         wintypes.LPVOID,   # hNameMappings
+         wintypes.LPCWSTR), # lpszProgressTitle
+    )
+
+    FO_DELETE = 3
+    FOF_ALLOWUNDO = 0x40
+    FOF_NOCONFIRMATION = 0x10
+    FOF_SILENT = 0x04
+    FOF_NOERRORUI = 0x400
+
+    flags = FOF_ALLOWUNDO | FOF_NOCONFIRMATION | FOF_SILENT | FOF_NOERRORUI
+    # SHFileOperation requires double-null terminated UTF-16 string
+    from_str = str(path) + "\0\0"
+
+    shell32 = ctypes.windll.shell32
+    shell32.SHFileOperationW.restype = ctypes.c_int
+    shell32.SHFileOperationW.argtypes = [ctypes.c_void_p]
+
+    # Build the struct manually since ctypes structs can be tricky with wintypes
+    buf = (ctypes.c_void_p * 8)()
+    buf[0] = None                         # hwnd
+    buf[1] = FO_DELETE                    # wFunc
+    buf[2] = ctypes.c_wchar_p(from_str)   # pFrom
+    buf[3] = None                         # pTo
+    buf[4] = flags                        # fFlags
+    buf[5] = False                        # fAnyOperationsAborted
+    buf[6] = None
+    buf[7] = None
+
+    result = shell32.SHFileOperationW(ctypes.byref(buf) if ctypes.sizeof(ctypes.c_void_p) == 8 else buf)
+    if result != 0:
+        raise OSError(f"SHFileOperationW failed: {result}")
 
 from lib.classifier import classify, get_category_name
 from lib.config_loader import (
@@ -538,7 +589,6 @@ class OrganizeGUI:
         if source == "pending":
             tree = self.p_tree
             items_list = self.preview_items
-            is_dir_check = lambda p: p.is_dir()
             get_path = lambda i: i.path
             refresh = self._on_preview
         else:
@@ -549,7 +599,6 @@ class OrganizeGUI:
             if not cat_dir.exists(): return
             items_list = sorted(cat_dir.iterdir(), key=lambda p: (p.is_file(), p.name.lower()))
             tree = self.b_tree
-            is_dir_check = lambda p: p.is_dir()
             get_path = lambda p: p
             refresh = self._on_cat_select
 
@@ -567,7 +616,7 @@ class OrganizeGUI:
         deleted, errors = 0, 0
         for path in to_delete:
             try:
-                (shutil.rmtree if is_dir_check(path) else path.unlink)(path)
+                _send_to_recycle_bin(path)
                 deleted += 1
                 self._log(f"已删除 {path.name}", "dedup")
             except (PermissionError, OSError) as e:
