@@ -74,6 +74,8 @@ class OrganizeGUI:
         self.root.minsize(800, 540)
         self._center()
 
+        # ── 全局字体 ──
+        self.root.option_add("*Listbox.font", ("Microsoft YaHei UI", 15))
         # ── 异常处理 ──
         self.root.report_callback_exception = self._handle_exception
 
@@ -137,7 +139,7 @@ class OrganizeGUI:
     # 侧边栏（浅色）
     # ══════════════════════════════════════════════════════════
     def _build_sidebar(self):
-        self.sidebar = ctk.CTkFrame(self.root, width=72, fg_color=C["sidebar_bg"],
+        self.sidebar = ctk.CTkFrame(self.root, width=90, fg_color=C["sidebar_bg"],
                                      corner_radius=0, border_width=0)
         self.sidebar.grid(row=0, column=0, rowspan=2, sticky="ns")
         self.sidebar.grid_propagate(False)
@@ -150,7 +152,7 @@ class OrganizeGUI:
                 font=ctk.CTkFont(size=15), anchor="w",
                 fg_color="transparent", text_color=C["sidebar_t"],
                 hover_color=C["light_bg"], corner_radius=8,
-                height=36, width=64,
+                height=46, width=80,
                 command=lambda idx=i: self._switch_page(idx),
             )
             btn.pack(pady=3, padx=4)
@@ -279,9 +281,9 @@ class OrganizeGUI:
 
         # 样式
         style = ttk.Style()
-        style.configure("Treeview", rowheight=34, font=("Microsoft YaHei UI", 11),
+        style.configure("Treeview", rowheight=50, font=("Microsoft YaHei UI", 16),
                         background=C["card"], fieldbackground=C["card"], borderwidth=0)
-        style.configure("Treeview.Heading", font=("Microsoft YaHei UI", 9, "bold"),
+        style.configure("Treeview.Heading", font=("Microsoft YaHei UI", 13, "bold"),
                         background=C["page_bg"], borderwidth=0)
         style.map("Treeview", background=[("selected", C["light_bg"])], foreground=[("selected", C["primary"])])
 
@@ -339,7 +341,7 @@ class OrganizeGUI:
         ctk.CTkLabel(left_card, text="分类目录", font=ctk.CTkFont(size=15, weight="bold"),
                      text_color=C["text"]).grid(row=0, column=0, sticky="w", padx=14, pady=(14, 6))
 
-        self._cat_listbox = tk.Listbox(left_card, width=18, bg=C["card"], fg=C["text"],
+        self._cat_listbox = tk.Listbox(left_card, width=20, bg=C["card"], fg=C["text"],
                                         selectbackground=C["light_bg"], selectforeground=C["primary"],
                                         activestyle="none", borderwidth=0, highlightthickness=0,
                                         font=("Microsoft YaHei UI", 10))
