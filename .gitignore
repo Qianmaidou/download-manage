@@ -28,3 +28,4 @@ history.json
 *.spec
 download-manage-v1.2.0.zip
 download-manage-v2.0.0.zip
+release/
