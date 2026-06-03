@@ -28,14 +28,12 @@ if exist "build" rmdir /s /q "build"
 
 :: 构建
 echo [3/3] 开始构建 EXE...
-echo        目标: dist\下载文件夹整理工具.exe
 echo.
 
 pyinstaller ^
     --onefile ^
     --windowed ^
-    --name "下载文件夹整理工具" ^
-    --add-data "config.json;." ^
+    --name "download-manage" ^
     --add-data "lib;lib" ^
     --hidden-import "tkinter" ^
     --hidden-import "lib.classifier" ^
@@ -51,11 +49,11 @@ if %errorlevel% equ 0 (
     echo.
     echo ========================================
     echo   构建成功！
-    echo   输出: dist\下载文件夹整理工具.exe
+    echo   输出: dist\download-manage.exe
     echo ========================================
     echo.
     echo 使用方法:
-    echo   1. 将 dist\下载文件夹整理工具.exe 复制到任意位置
+    echo   1. 将 dist\download-manage.exe 复制到任意位置
     echo   2. 将 config.json 放在同一目录下
     echo   3. 双击运行即可
 ) else (
