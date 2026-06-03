@@ -344,7 +344,7 @@ class OrganizeGUI:
         self._cat_listbox = tk.Listbox(left_card, width=20, bg=C["card"], fg=C["text"],
                                         selectbackground=C["light_bg"], selectforeground=C["primary"],
                                         activestyle="none", borderwidth=0, highlightthickness=0,
-                                        font=("Microsoft YaHei UI", 10))
+                                        font=("Microsoft YaHei UI", 15))
         self._cat_listbox.grid(row=1, column=0, sticky="nsew", padx=10, pady=(0, 14))
         self._cat_listbox.bind("<<ListboxSelect>>", self._on_cat_select)
 
@@ -594,8 +594,16 @@ class OrganizeGUI:
                 self._log(f"删除失败 {path.name}: {e}", "error")
 
         self._log(f"删除: {deleted} 项" + (f", {errors} 失败" if errors else ""), "info")
-        self._refresh_cat_list()
-        refresh()
+
+        if source == "browse":
+            # 保留分类选中状态，直接刷新右侧文件列表
+            self._refresh_cat_list()
+            self._cat_listbox.selection_set(sel[0])
+            self._cat_listbox.see(sel[0])
+            self._on_cat_select()
+        else:
+            self._refresh_cat_list()
+            refresh()
 
     # ══════════════════════════════════════════════════════════
     # 预览
