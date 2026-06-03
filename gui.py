@@ -27,52 +27,38 @@ import tkinter as tk
 
 
 # ── Windows 回收站 ─────────────────────────────────────────
+class _SHFILEOPSTRUCTW(ctypes.Structure):
+    _fields_ = [
+        ("hwnd",  wintypes.HWND),
+        ("wFunc", wintypes.UINT),
+        ("pFrom", wintypes.LPCWSTR),
+        ("pTo",   wintypes.LPCWSTR),
+        ("fFlags",wintypes.WORD),
+        ("fAnyOperationsAborted", wintypes.BOOL),
+        ("hNameMappings", wintypes.LPVOID),
+        ("lpszProgressTitle", wintypes.LPCWSTR),
+    ]
+
 def _send_to_recycle_bin(path: Path) -> None:
     """将文件或文件夹移入 Windows 回收站。"""
     if not sys.platform == "win32":
         (shutil.rmtree if path.is_dir() else path.unlink)(path)
         return
 
-    # Shell32 SHFileOperationW
-    SHFILEOPSTRUCTW = (
-        (wintypes.HWND,     # hwnd
-         wintypes.UINT,     # wFunc
-         wintypes.LPCWSTR,  # pFrom (double null terminated)
-         wintypes.LPCWSTR,  # pTo
-         wintypes.WORD,     # fFlags
-         wintypes.BOOL,     # fAnyOperationsAborted
-         wintypes.LPVOID,   # hNameMappings
-         wintypes.LPCWSTR), # lpszProgressTitle
-    )
-
     FO_DELETE = 3
     FOF_ALLOWUNDO = 0x40
     FOF_NOCONFIRMATION = 0x10
-    FOF_SILENT = 0x04
-    FOF_NOERRORUI = 0x400
+    FOF_NOERRORUI = 0x0400
+    FOF_SILENT = 0x0004
 
-    flags = FOF_ALLOWUNDO | FOF_NOCONFIRMATION | FOF_SILENT | FOF_NOERRORUI
-    # SHFileOperation requires double-null terminated UTF-16 string
-    from_str = str(path) + "\0\0"
+    op = _SHFILEOPSTRUCTW()
+    op.wFunc = FO_DELETE
+    op.pFrom = str(path) + "\0"
+    op.fFlags = FOF_ALLOWUNDO | FOF_NOCONFIRMATION | FOF_NOERRORUI | FOF_SILENT
 
-    shell32 = ctypes.windll.shell32
-    shell32.SHFileOperationW.restype = ctypes.c_int
-    shell32.SHFileOperationW.argtypes = [ctypes.c_void_p]
-
-    # Build the struct manually since ctypes structs can be tricky with wintypes
-    buf = (ctypes.c_void_p * 8)()
-    buf[0] = None                         # hwnd
-    buf[1] = FO_DELETE                    # wFunc
-    buf[2] = ctypes.c_wchar_p(from_str)   # pFrom
-    buf[3] = None                         # pTo
-    buf[4] = flags                        # fFlags
-    buf[5] = False                        # fAnyOperationsAborted
-    buf[6] = None
-    buf[7] = None
-
-    result = shell32.SHFileOperationW(ctypes.byref(buf) if ctypes.sizeof(ctypes.c_void_p) == 8 else buf)
+    result = ctypes.windll.shell32.SHFileOperationW(ctypes.byref(op))
     if result != 0:
-        raise OSError(f"SHFileOperationW failed: {result}")
+        raise OSError(f"回收站操作失败 (code={result})")
 
 from lib.classifier import classify, get_category_name
 from lib.config_loader import (
