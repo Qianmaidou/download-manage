@@ -81,7 +81,7 @@ class OrganizeGUI:
         self.root.report_callback_exception = self._handle_exception
 
         self.root.columnconfigure(1, weight=1)
-        self.root.rowconfigure(1, weight=1)
+        self.root.rowconfigure(0, weight=1)
 
         # ── 数据 ──
         self._load_config()
@@ -205,7 +205,7 @@ class OrganizeGUI:
     # ══════════════════════════════════════════════════════════
     def _build_sidebar(self):
         self.sidebar = tk.Frame(self.root, bg=C["sidebar"], width=72)
-        self.sidebar.grid(row=0, column=0, rowspan=2, sticky="ns")
+        self.sidebar.grid(row=0, column=0, rowspan=3, sticky="ns")
         self.sidebar.grid_propagate(False)
 
         # 标题
