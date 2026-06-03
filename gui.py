@@ -162,16 +162,28 @@ class OrganizeGUI:
         # ── Button ──
         style.configure("Primary.TButton",
             background=C["primary"], foreground="white", borderwidth=0,
-            padding=(16, 6), font=F,
+            padding=(16, 7), font=("Microsoft YaHei UI", 9, "bold"),
         )
         style.map("Primary.TButton",
             background=[("active", C["primary_h"]), ("disabled", C["border"])],
             foreground=[("disabled", C["text_s"])],
         )
         style.configure("TButton",
-            padding=(12, 5), font=F,
+            padding=(12, 6), font=F, borderwidth=1,
+            background=C["card"], foreground=C["text"],
         )
-        style.configure("Small.TButton", padding=(8, 3), font=F)
+        style.map("TButton",
+            background=[("active", C["light_bg"]), ("disabled", C["card"])],
+            foreground=[("disabled", C["text_s"])],
+        )
+        style.configure("Small.TButton", padding=(8, 4), font=F)
+        style.configure("Danger.TButton",
+            padding=(12, 6), font=F,
+            background=C["card"], foreground=C["error"],
+        )
+        style.map("Danger.TButton",
+            background=[("active", "#FEE2E2")],
+        )
 
         # ── Treeview ──
         style.configure("Treeview",
@@ -263,6 +275,9 @@ class OrganizeGUI:
             p.place_forget()
         self._pages[index].place(x=0, y=0, relwidth=1, relheight=1)
 
+        if index == 1:  # 浏览页：自动刷新分类列表
+            self._refresh_cat_list()
+
     # ══════════════════════════════════════════════════════════
     # 三个页面
     # ══════════════════════════════════════════════════════════
@@ -343,13 +358,13 @@ class OrganizeGUI:
         btn_frame = tk.Frame(bottom, bg=C["page_bg"])
         btn_frame.grid(row=0, column=1, sticky="e")
 
-        self.btn_preview = ttk.Button(btn_frame, text="🔍 预览", command=self._on_preview)
+        self.btn_preview = ttk.Button(btn_frame, text="🔍 预览", command=self._on_preview, style="TButton")
         self.btn_preview.pack(side="left", padx=(0, 6))
-        self.btn_organize = ttk.Button(btn_frame, text="▶ 立即整理", command=self._on_organize)
+        self.btn_organize = ttk.Button(btn_frame, text="▶ 立即整理", command=self._on_organize, style="Primary.TButton")
         self.btn_organize.pack(side="left", padx=(0, 6))
-        self.btn_del_pen = ttk.Button(btn_frame, text="🗑 删除选中", command=lambda: self._on_delete_tree("pending"))
+        self.btn_del_pen = ttk.Button(btn_frame, text="🗑 删除选中", command=lambda: self._on_delete_tree("pending"), style="Danger.TButton")
         self.btn_del_pen.pack(side="left", padx=(0, 6))
-        self.btn_undo = ttk.Button(btn_frame, text="↩ 撤销", command=self._on_undo)
+        self.btn_undo = ttk.Button(btn_frame, text="↩ 撤销", command=self._on_undo, style="TButton")
         self.btn_undo.pack(side="left")
 
         return page
@@ -439,7 +454,7 @@ class OrganizeGUI:
         self.b_tree.bind("<Button-2>", self._on_b_tree_right_click)
 
         self.btn_del_brw = ttk.Button(right_card, text="🗑 删除选中",
-                                       command=lambda: self._on_delete_tree("browse"))
+                                       command=lambda: self._on_delete_tree("browse"), style="Danger.TButton")
         self.btn_del_brw.grid(row=1, column=0, sticky="e", pady=(8, 0))
 
         return page
@@ -646,7 +661,7 @@ class OrganizeGUI:
         if source == "pending":
             tree = self.p_tree
             items_list = self.preview_items
-            is_folder_check = lambda i: i.is_folder
+            is_folder_check = lambda p: p.is_dir()
             get_path = lambda i: i.path
             refresh = self._on_preview
         else:
