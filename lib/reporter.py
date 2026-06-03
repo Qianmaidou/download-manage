@@ -41,7 +41,7 @@ class Report:
 
     @property
     def total_files(self) -> int:
-        return sum(s["files"] for s in self.stats.values())
+        return sum(s.get("files", 0) for s in self.stats.values())
 
     @property
     def total_folders(self) -> int:

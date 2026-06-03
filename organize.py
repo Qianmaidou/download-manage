@@ -120,7 +120,13 @@ def do_organize(
     record = OperationRecord()
     dry_run_moves: List[dict] = []
 
+    # 分类目录名集合：这些目录本身不应被整理
+    category_names = {cat["name"] for cat in categories_config.values()}
+
     items = scan_items(downloads)
+
+    # 过滤掉分类目录自身
+    items = [p for p in items if p.name not in category_names or not p.is_dir()]
 
     if not items:
         print("下载文件夹为空，无需整理。")
@@ -205,11 +211,18 @@ def do_organize(
             report.print_summary()
 
 
-def do_undo(history_mgr: HistoryManager, verbose: bool = False) -> None:
+def do_undo(
+    history_mgr: HistoryManager,
+    downloads_root: Path,
+    category_names: set,
+    verbose: bool = False,
+) -> None:
     """撤销最近一次整理操作。
 
     Args:
         history_mgr: 历史记录管理器。
+        downloads_root: 下载文件夹根目录。
+        category_names: 分类目录名集合（用于清理空目录）。
         verbose: 是否详细输出。
     """
     last = history_mgr.get_last_operation()
@@ -267,21 +280,24 @@ def do_undo(history_mgr: HistoryManager, verbose: bool = False) -> None:
     print(f"\n撤销完成: {success} 项已恢复" + (f"，{failed} 项失败" if failed else ""))
 
     # 尝试清理空目录
-    _cleanup_empty_dirs(Path(dest_str).parent if moves else None)
+    _cleanup_empty_dirs(downloads_root, category_names)
 
 
-def _cleanup_empty_dirs(root: Optional[Path]) -> None:
+def _cleanup_empty_dirs(root: Path, category_names: set) -> None:
     """清理空的分类目录。
 
     Args:
-        root: 根目录，仅清理该层级下的空目录。
+        root: 下载文件夹根目录。
+        category_names: 分类目录名集合。
     """
-    if root is None or not root.exists():
+    if not root.exists():
         return
     for item in root.iterdir():
-        if item.is_dir() and not any(item.iterdir()):
+        if item.is_dir() and item.name in category_names:
             try:
-                item.rmdir()
+                # 检查是否为空
+                if not any(item.iterdir()):
+                    item.rmdir()
             except OSError:
                 pass
 
@@ -311,7 +327,8 @@ def main() -> None:
 
     # 执行操作
     if args.undo:
-        do_undo(history_mgr, verbose=args.verbose)
+        category_names = {cat["name"] for cat in categories_config.values()}
+        do_undo(history_mgr, downloads, category_names, verbose=args.verbose)
     else:
         if not args.quiet and not args.dry_run:
             print(f"下载文件夹: {downloads}")
