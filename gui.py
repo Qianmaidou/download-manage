@@ -606,36 +606,18 @@ class OrganizeGUI:
 
         # 收集要删除的 PreviewItem
         items_to_delete: List[PreviewItem] = []
-        names: List[str] = []
         for iid in selection:
             try:
                 idx = int(iid)
                 item = self.preview_items[idx]
                 items_to_delete.append(item)
-                names.append(item.name)
             except (ValueError, IndexError):
                 continue
 
         if not items_to_delete:
             return
 
-        # 确认对话框
-        count = len(items_to_delete)
-        folders = sum(1 for i in items_to_delete if i.is_folder)
-        file_count = count - folders
-        detail = "\n\n".join(names[:10])
-        if count > 10:
-            detail += f"\n... 等共 {count} 项"
-
-        msg = f"确认删除以下 {count} 项？\n\n{detail}\n\n"
-        if folders > 0:
-            msg += f"⚠ 包含 {folders} 个文件夹，将连同内容一起删除！\n\n"
-        msg += "此操作不可撤销，确认删除？"
-
-        if not messagebox.askyesno("确认删除", msg, icon="warning"):
-            return
-
-        # 执行删除
+        # 直接执行删除（无确认对话框）
         deleted = 0
         errors = 0
         for item in items_to_delete:
