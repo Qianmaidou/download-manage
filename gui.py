@@ -72,7 +72,6 @@ class OrganizeGUI:
         self.root.title("下载文件夹整理工具")
         self.root.geometry("960x680")
         self.root.minsize(800, 540)
-        self._center()
 
         # ── 全局字体 ──
         self.root.option_add("*Listbox.font", ("Microsoft YaHei UI", 15))
@@ -96,6 +95,7 @@ class OrganizeGUI:
         self._bind_keys()
         self._refresh_last_time()
         self.root.protocol("WM_DELETE_WINDOW", self._on_close)
+        self._center()
 
     # ══════════════════════════════════════════════════════════
     # 配置
@@ -457,28 +457,17 @@ class OrganizeGUI:
         bar.grid_propagate(False)
         bar.grid_columnconfigure(3, weight=1)
 
-        self._status_dot = tk.Canvas(bar, width=10, height=10, highlightthickness=0, bg=C["card"])
-        self._status_dot.grid(row=0, column=0, padx=(16, 6))
-        self._draw_dot(C["success"])
-
-        self._status_label = ctk.CTkLabel(bar, text="就绪", font=ctk.CTkFont(size=16), text_color=C["text"])
-        self._status_label.grid(row=0, column=1, sticky="w")
-
         self._status_text = tk.StringVar(value="就绪")
         ctk.CTkLabel(bar, textvariable=self._status_text, font=ctk.CTkFont(size=16),
-                     text_color=C["text_s"]).grid(row=0, column=2, padx=(20, 0))
+                     text_color=C["text_s"]).grid(row=0, column=0, sticky="w", padx=(16, 0))
 
         ctk.CTkLabel(bar, text="上次整理:", font=ctk.CTkFont(size=16),
-                     text_color=C["text_s"]).grid(row=0, column=4, padx=(0, 4))
+                     text_color=C["text_s"]).grid(row=0, column=2, padx=(0, 4))
         ctk.CTkLabel(bar, textvariable=self.last_organize_time, font=ctk.CTkFont(size=16),
-                     text_color=C["text_s"]).grid(row=0, column=5, padx=(0, 16))
+                     text_color=C["text_s"]).grid(row=0, column=3, padx=(0, 16))
 
         self._progress = ctk.CTkProgressBar(bar, width=100, height=10, corner_radius=5,
                                              fg_color=C["border"], progress_color=C["primary"])
-
-    def _draw_dot(self, color):
-        self._status_dot.delete("all")
-        self._status_dot.create_oval(1, 1, 9, 9, fill=color, outline="")
 
     # ══════════════════════════════════════════════════════════
     # 运行状态控制
@@ -527,10 +516,7 @@ class OrganizeGUI:
         elif self._active_page == 1: self._on_delete_tree("browse")
 
     def _center(self):
-        self.root.update_idletasks()
-        w, h = self.root.winfo_width(), self.root.winfo_height()
-        sw, sh = self.root.winfo_screenwidth(), self.root.winfo_screenheight()
-        self.root.geometry(f"+{(sw-w)//2}+{(sh-h)//2}")
+        self.root.eval("tk::PlaceWindow . center")
 
     def _handle_exception(self, exc_type, exc_val, exc_tb):
         import traceback
