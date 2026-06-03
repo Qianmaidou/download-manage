@@ -523,7 +523,7 @@ class OrganizeGUI:
         sh = self.root.winfo_screenheight()
         x = (sw - w) // 2
         y = (sh - h) // 2
-        self.root.geometry(f"+{x}+{y}")
+        self.root.geometry(f"{w}x{h}+{x}+{y}")
 
     def _handle_exception(self, exc_type, exc_val, exc_tb):
         import traceback
