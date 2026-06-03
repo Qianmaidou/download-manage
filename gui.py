@@ -207,7 +207,7 @@ class OrganizeGUI:
         )
 
     def _build_button_bar(self) -> None:
-        """操作按钮栏：预览、整理、撤销、停止。"""
+        """操作按钮栏：预览、整理、删除选中、撤销、停止。"""
         frame = ttk.Frame(self.root, padding=(10, 4))
         frame.grid(row=1, column=0, sticky="ew")
 
@@ -219,6 +219,9 @@ class OrganizeGUI:
 
         self.btn_undo = ttk.Button(frame, text="↩ 撤销", command=self._on_undo)
         self.btn_undo.pack(side="left", padx=(0, 6))
+
+        self.btn_delete = ttk.Button(frame, text="🗑 删除选中", command=self._on_delete_selected)
+        self.btn_delete.pack(side="left", padx=(0, 6))
 
         self.btn_stop = ttk.Button(frame, text="⏹ 停止", command=self._on_stop, state="disabled")
         self.btn_stop.pack(side="left")
@@ -238,7 +241,7 @@ class OrganizeGUI:
         columns = ("name", "type", "category", "action")
         self.tree = ttk.Treeview(
             tab_preview, columns=columns, show="headings",
-            selectmode="none",
+            selectmode="extended",
         )
         self.tree.heading("name", text="文件名")
         self.tree.heading("type", text="类型")
@@ -249,6 +252,13 @@ class OrganizeGUI:
         self.tree.column("type", width=60, minwidth=50, anchor="center")
         self.tree.column("category", width=100, minwidth=70, anchor="center")
         self.tree.column("action", width=120, minwidth=80, anchor="center")
+
+        # 右键菜单
+        self._tree_menu = tk.Menu(self.tree, tearoff=0)
+        self._tree_menu.add_command(label="🗑 删除选中", command=self._on_delete_selected)
+        self._tree_menu.add_command(label="🔍 全选", command=self._on_select_all)
+        self.tree.bind("<Button-3>", self._on_tree_right_click)
+        self.tree.bind("<Button-2>", self._on_tree_right_click)  # 触控板右键
 
         # 滚动条
         tree_scroll = ttk.Scrollbar(tab_preview, orient="vertical", command=self.tree.yview)
@@ -345,6 +355,7 @@ class OrganizeGUI:
             self.btn_preview.config(state="disabled")
             self.btn_organize.config(state="disabled")
             self.btn_undo.config(state="disabled")
+            self.btn_delete.config(state="disabled")
             self.btn_stop.config(state="normal")
             self._progress.grid(row=0, column=1, sticky="e", padx=(10, 0))
             self._progress.start(10)
@@ -352,6 +363,7 @@ class OrganizeGUI:
             self.btn_preview.config(state="normal")
             self.btn_organize.config(state="normal")
             self.btn_undo.config(state="normal")
+            self.btn_delete.config(state="normal")
             self.btn_stop.config(state="disabled")
             self._progress.stop()
             self._progress.grid_forget()
@@ -383,6 +395,9 @@ class OrganizeGUI:
         self.root.bind("<Control-O>", lambda e: self._on_organize())
         self.root.bind("<Control-z>", lambda e: self._on_undo())
         self.root.bind("<Control-Z>", lambda e: self._on_undo())
+        self.root.bind("<Control-a>", lambda e: self._on_select_all())
+        self.root.bind("<Control-A>", lambda e: self._on_select_all())
+        self.root.bind("<Delete>", lambda e: self._on_delete_selected())
 
     def _on_close(self) -> None:
         """窗口关闭处理。"""
@@ -464,8 +479,8 @@ class OrganizeGUI:
         for row in self.tree.get_children():
             self.tree.delete(row)
 
-        # 填充
-        for item in items:
+        # 填充（用索引作为 iid，方便删除时查找 PreviewItem）
+        for i, item in enumerate(items):
             op_text = {
                 "move": f"→ {item.cat_name}/",
                 "dedup": "去重删除",
@@ -475,7 +490,7 @@ class OrganizeGUI:
 
             type_text = "文件夹" if item.is_folder else "文件"
 
-            self.tree.insert("", "end", values=(
+            self.tree.insert("", "end", iid=str(i), values=(
                 item.name, type_text, item.cat_name, op_text,
             ))
 
@@ -552,6 +567,91 @@ class OrganizeGUI:
         self._log(f"预览完成: {total} 项待整理, {skipped} 项忽略", self.TAG_INFO)
         self._set_status("就绪", self.COLOR_READY)
         self._status_text.set("就绪")
+
+    # ------------------------------------------------------------------
+    # 右键菜单 + 删除选中
+    # ------------------------------------------------------------------
+
+    def _on_tree_right_click(self, event) -> None:
+        """Treeview 右键菜单。"""
+        # 先选中右键所在的行
+        row = self.tree.identify_row(event.y)
+        if row:
+            if row not in self.tree.selection():
+                self.tree.selection_set(row)
+        # 显示菜单
+        try:
+            self._tree_menu.tk_popup(event.x_root, event.y_root)
+        finally:
+            self._tree_menu.grab_release()
+
+    def _on_select_all(self) -> None:
+        """全选 Treeview 中所有行。"""
+        all_rows = self.tree.get_children()
+        self.tree.selection_set(all_rows)
+
+    def _on_delete_selected(self) -> None:
+        """删除选中的文件/文件夹。"""
+        if self._running:
+            return
+
+        selection = self.tree.selection()
+        if not selection:
+            messagebox.showinfo("提示", "请先在文件预览中选中要删除的文件。\n\n"
+                                "提示：可以按住 Ctrl 或 Shift 多选，"
+                                "也可以右键点击文件。")
+            return
+
+        # 收集要删除的 PreviewItem
+        items_to_delete: List[PreviewItem] = []
+        names: List[str] = []
+        for iid in selection:
+            try:
+                idx = int(iid)
+                item = self.preview_items[idx]
+                items_to_delete.append(item)
+                names.append(item.name)
+            except (ValueError, IndexError):
+                continue
+
+        if not items_to_delete:
+            return
+
+        # 确认对话框
+        count = len(items_to_delete)
+        folders = sum(1 for i in items_to_delete if i.is_folder)
+        file_count = count - folders
+        detail = "\n\n".join(names[:10])
+        if count > 10:
+            detail += f"\n... 等共 {count} 项"
+
+        msg = f"确认删除以下 {count} 项？\n\n{detail}\n\n"
+        if folders > 0:
+            msg += f"⚠ 包含 {folders} 个文件夹，将连同内容一起删除！\n\n"
+        msg += "此操作不可撤销，确认删除？"
+
+        if not messagebox.askyesno("确认删除", msg, icon="warning"):
+            return
+
+        # 执行删除
+        deleted = 0
+        errors = 0
+        for item in items_to_delete:
+            try:
+                if item.is_folder:
+                    import shutil
+                    shutil.rmtree(item.path)
+                else:
+                    item.path.unlink()
+                deleted += 1
+                self._log(f"已删除 {item.name}", self.TAG_DEDUP)
+            except (PermissionError, OSError) as e:
+                errors += 1
+                self._log(f"删除失败 {item.name}: {e}", self.TAG_ERROR)
+
+        # 刷新预览
+        self._log(f"删除完成: {deleted} 项" + (f", {errors} 项失败" if errors else ""), self.TAG_INFO)
+        self._on_preview()
 
     # ------------------------------------------------------------------
     # 整理
