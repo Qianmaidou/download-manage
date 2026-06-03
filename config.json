@@ -1,0 +1,48 @@
+{
+  "downloads_path": "auto",
+  "categories": {
+    "photos": {
+      "name": "照片",
+      "extensions": [
+        ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".svg",
+        ".webp", ".ico", ".tiff", ".tif", ".heic", ".heif", ".raw"
+      ]
+    },
+    "documents": {
+      "name": "文档",
+      "extensions": [
+        ".pdf", ".doc", ".docx", ".xls", ".xlsx",
+        ".ppt", ".pptx", ".txt", ".md", ".csv", ".rtf",
+        ".odt", ".ods", ".odp", ".srt"
+      ]
+    },
+    "archives": {
+      "name": "压缩包",
+      "extensions": [
+        ".zip", ".rar", ".7z", ".tar", ".gz", ".bz2",
+        ".xz", ".tgz", ".cab", ".iso",
+        ".tar.gz", ".tar.bz2", ".tar.xz"
+      ],
+      "include_folders": true
+    },
+    "installers": {
+      "name": "安装包",
+      "extensions": [
+        ".exe", ".msi", ".dmg", ".pkg", ".deb", ".rpm", ".apk"
+      ]
+    },
+    "others": {
+      "name": "其他",
+      "extensions": []
+    }
+  },
+  "ignored_patterns": [
+    "desktop.ini",
+    "Thumbs.db",
+    ".DS_Store",
+    "*.crdownload",
+    "*.part",
+    "*.tmp"
+  ],
+  "history_file": "history.json"
+}
